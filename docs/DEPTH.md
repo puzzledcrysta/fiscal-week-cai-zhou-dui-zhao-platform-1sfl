@@ -15,6 +15,7 @@
 | M5 经营清单 | 核对独立清单和各类差异 | `POST /api/reconcile` | `app/modules/reconcile/service.py` | `tests/test_reconcile.py` |
 | M6 财周批次 | 打开历史批次并对原文件复跑 | `POST /api/runs` | `app/modules/runs/service.py` | `tests/test_runs.py` |
 | M7 月结复核 | 登记复核结论并下载证据 | `POST /api/review/{run_id}` | `app/modules/review/decisions.py` | `tests/test_review.py` |
+| M8 补正结转 | 登记签字后更高修订并结转到下一批 | `POST /api/runs/{run_id}/corrections` | `app/modules/correction/service.py` | `tests/test_correction.py` |
 
 ## 陷阱登记
 
@@ -33,9 +34,16 @@
 | TRAP-17 | 旧版列名映射 | legacy.csv | `app/modules/contract/schema.py` | `tests/test_contract.py::test_legacy_aliased` |
 | TRAP-18 | 空文件、空白文件与仅表头 | 测试构造 | `app/modules/intake/service.py` | `tests/test_intake.py::test_empty_states` |
 | TRAP-26 | 陈旧复核版本拒绝 | 测试构造 | `app/modules/review/decisions.py` | `tests/test_review.py::test_stale` |
+| TRAP-31 | 签字后收到更高修订 | correction.csv | `app/modules/correction/service.py` | `tests/test_correction.py::test_register_ready_and_idempotent` |
+| TRAP-32 | 补正重复登记或重复结转 | 测试构造 | `app/modules/runs/repository.py` | `tests/test_correction.py::test_carry_forward_once` |
+| TRAP-33 | 补证不足与来源已含修订 | 测试构造 | `app/modules/correction/service.py` | `tests/test_correction.py::test_pending_kept_and_resolved` |
 | TRAP-23 | outside year | cases.csv | `app/modules/domain/rule.py` | `tests/test_domain.py::test_outside_year` |
 | TRAP-107 | leap week | cases.csv | `app/modules/domain/rule.py` | `tests/test_domain.py::test_leap_week` |
 
 ## 对账
 
 输入 = 计入 + 隔离 + 重传及版本替换 + 空白记录 + 重复表头。按业务键全外连接，缺失一侧与数值为零分别登记。逐笔差值与总差一致。
+
+## 补正
+
+签字批次不改动。补正以原批已采信金额为基线只携带差额，状态为待补证、待结转、已结转或已被更高修订取代。下一个新批次一次性结转全部待结转补正；同一内容批次复跑不重复结转，同一补正重复登记不新增。新批次来源已含该修订时记为吸收，当期生效为零；同一业务键多次补正时扣减此前已结转金额。

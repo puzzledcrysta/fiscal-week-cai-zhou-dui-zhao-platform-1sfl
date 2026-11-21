@@ -93,12 +93,13 @@ async function render() {
   const stage = selected;
   byId('phase').textContent = settings.tabs[stage];
   byId('review').hidden = true;
+  byId('correction').hidden = true;
   for (const link of links) {
     if (link.dataset.module === stage) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   }
-  if (!result) return;
-  const id = result.manifest.run_id;
+  if (!result && stage !== 'correction') return;
+  const id = result?.manifest.run_id;
   const raw = row => evidence('来源字段', row.raw);
   const key = [settings.key, 'key'];
   const line = ['行号', 'line', 'num'];
@@ -113,6 +114,22 @@ async function render() {
     } else if (stage === 'reconcile') {
       view = [key, ['实际', 'amount', 'num'], ['外部账', 'reference', 'num'], ['差值', 'delta', 'num'], ['外部行', 'book_line', 'num'], ['结论', row => tag(row.code)]];
       rows = [...result.book.rows].sort((a,b) => Number(a.code === 'MATCH') - Number(b.code === 'MATCH'));
+      for (const line of result.adjustments?.lines || []) {
+        rows.push({key: line.key, amount: null, reference: null, delta: line.effective, line: null, book_line: null,
+                   code: line.status === 'absorbed' ? 'CORRECTION_ABSORBED' : 'CORRECTION_APPLIED',
+                   detail: `补正 ${line.correction.slice(0, 9)} 来自批次 ${line.origin_run.slice(0, 9)}`});
+      }
+    } else if (stage === 'correction') {
+      const corrections = await query('/api/corrections');
+      view = [['原批次', row => el('span', row.run_id.slice(0, 9), 'num')], key,
+              ['修订', 'revision', 'num'], ['原批额', 'origin_amount', 'num'],
+              ['修订额', 'revised_amount', 'num'], ['应补差额', 'delta', 'num'],
+              ['状态', row => el('span', settings.states[row.state] || row.state,
+                                row.state === 'applied' ? 'state' : 'state problem')],
+              ['结转批次', row => row.applied_run ? row.applied_run.slice(0, 9) : '—'],
+              ['说明', 'detail'], ['登记 UTC', 'created']];
+      rows = corrections;
+      if (ticket === renderEpoch) byId('correction').hidden = false;
     } else if (stage === 'intake') {
       const intake = await query('/api/intake', inputs);
       view = [line, ['分类', 'kind'], ['字段', raw]];
@@ -150,7 +167,7 @@ async function render() {
         return button;
       }]];
       rows = runs;
-    } else {
+    } else if (stage === 'review') {
       const timeline = await query(`/api/review/${id}`);
       view = [['版本','version','num'], ['结论','decision'], ['复核意见','note'], ['登记 UTC','changed']];
       rows = timeline;
@@ -224,10 +241,31 @@ byId('source').addEventListener('submit', async event => {
     const report = await query('/api/runs', candidate);
     inputs = candidate;
     setRun(report);
-    notice('批次已计算');
+    const carried = report.adjustments?.lines?.length || 0;
+    notice(carried ? `批次已计算，结转补正 ${carried} 条` : '批次已计算');
     await render();
   } catch (error) { notice(error.message, true); }
   finally { action.disabled = false; }
+});
+byId('correction').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!result) { notice('请先运行批次', true); return; }
+  const field = byId('correction-csv');
+  try {
+    const response = await query(`/api/runs/${result.manifest.run_id}/corrections`, {data: field.value});
+    const states = response.corrections.map(item => settings.states[item.state] || item.state).join('、');
+    notice(`已登记 ${response.corrections.length} 条补正：${states}`);
+    field.value = '';
+    await render();
+  } catch (error) { notice(error.message, true); }
+});
+byId('correction-sample').addEventListener('click', async () => {
+  try {
+    const response = await fetch('/api/samples/correction');
+    if (!response.ok) throw Error('样例暂时不可用');
+    byId('correction-csv').value = new TextDecoder('utf-8').decode(await response.arrayBuffer());
+    notice('补正样例已载入');
+  } catch (error) { notice(error.message, true); }
 });
 byId('review').addEventListener('submit', async event => {
   event.preventDefault();

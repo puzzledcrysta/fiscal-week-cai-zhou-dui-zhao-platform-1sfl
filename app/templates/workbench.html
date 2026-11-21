@@ -53,6 +53,11 @@
         <div class="actions"><label>结论 <select id="decision"><option>确认</option><option>退回</option></select></label>
         <button class="btn btn--primary" type="submit">提交复核</button></div>
       </form>
+      <form id="correction" class="panel__body" hidden>
+        <label>补正来源 <textarea id="correction-csv" rows="3" placeholder="粘贴门店更高修订的 CSV，登记到当前已签字批次"></textarea></label>
+        <div class="actions"><button class="btn btn--primary" type="submit">登记补正</button>
+        <button type="button" id="correction-sample" class="btn">载入补正样例</button></div>
+      </form>
     </section>
 
     <article class="panel signal" id="evidence-panel" data-instrument="period">
@@ -63,6 +68,6 @@
       <footer class="statusbar"><span id="state" role="status">等待输入</span><a href="/openapi.json">接口</a><span>UTC</span></footer>
     </div>
   </div>
-  <script type="application/json" id="settings">{{ {'reasons': reasons, 'tabs': tabs, 'unit': unit, 'key': key}|tojson }}</script>
+  <script type="application/json" id="settings">{{ {'reasons': reasons, 'tabs': tabs, 'unit': unit, 'key': key, 'states': states}|tojson }}</script>
 </body>
 </html>

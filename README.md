@@ -18,6 +18,7 @@ docker compose up --build
 2. 在「日历冲突」区分冲突、业务拒绝、重传与旧版本。
 3. 打开「可比财周」并点击任意记录的「查看依据」。
 4. 在「经营清单」检查金额或用量差异。通过「财周批次」复算原文件，通过「月结复核」提交意见并下载证据。
+5. 签字后收到门店更高修订时，在「补正结转」登记补正来源：原批不动，差额随下一个新批次结转一次，补证不足的记录保留待补。
 
 接口定义见 `/openapi.json`。字段、允许区间及算例见 [数据字典](docs/DATA-DICTIONARY.md)，模块和回归测试见 [测试登记](docs/DEPTH.md)。
 
@@ -28,4 +29,4 @@ docker compose config --quiet
 docker compose exec -T app pytest -q
 ```
 
-`sample_data/shift.csv` 是班次数据，`sample_data/external.csv` 是独立账样例。`cases.csv` 固定业务反例，`legacy.csv` 和 `truncated.csv` 用于验证历史格式与断行。
+`sample_data/shift.csv` 是班次数据，`sample_data/external.csv` 是独立账样例。`cases.csv` 固定业务反例，`legacy.csv` 和 `truncated.csv` 用于验证历史格式与断行，`correction.csv` 是签字后补正样例。

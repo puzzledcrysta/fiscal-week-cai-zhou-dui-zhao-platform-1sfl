@@ -1,6 +1,7 @@
 import json
 from app.errors import DataError
 from app.store import connection
+from app.modules.correction.service import settle
 
 
 def lookup(db,run_id):
@@ -17,8 +18,13 @@ def fetch(run_id):
 
 def persist(run_id,source,book,result,created):
     with connection() as db:
-        db.execute('INSERT OR IGNORE INTO runs VALUES (?,?,?,?,?)',
-                   (run_id,source,book,json.dumps(result,ensure_ascii=False),created))
+        db.execute('BEGIN IMMEDIATE')
+        cursor = db.execute('INSERT OR IGNORE INTO runs VALUES (?,?,?,?,?)',
+                            (run_id,source,book,json.dumps(result,ensure_ascii=False),created))
+        if cursor.rowcount:
+            result['adjustments'] = settle(db,run_id,result,created)
+            db.execute('UPDATE runs SET result=? WHERE id=?',
+                       (json.dumps(result,ensure_ascii=False),run_id))
         return lookup(db,run_id)
 
 

@@ -9,6 +9,13 @@ REASONS = {
     'AMOUNT_DELTA': '复算与外部账计量不同', 'BOOK_CONFLICT': '独立账含重复业务键',
     'RUN_UNKNOWN': '没有此批次', 'DEMO_UNKNOWN': '没有此样例', 'STALE': '复核版本已过期',
     'REVIEW_NOTE': '有差异时须填写复核意见', 'REVIEW_DECISION': '复核结论无效',
+    'RUN_UNSIGNED': '月结未签字确认', 'CORRECTION_UNKNOWN': '没有此补正',
+    'CORRECTION_KEY_UNKNOWN': '原批没有此业务键', 'CORRECTION_REVISION': '修订号未高于原批',
+    'CORRECTION_EVIDENCE': '补正证据不足', 'CORRECTION_APPLIED': '补正结转',
+    'CORRECTION_ABSORBED': '补正已由来源吸收',
 }
+
+CORRECTION_STATES = {'pending': '待补证', 'ready': '待结转', 'applied': '已结转',
+                     'superseded': '已被更高修订取代'}
 
 REASONS.update({'FISCAL_FORMAT': '日销售格式', 'FISCAL_SPAN': '销售日越界', 'FISCAL_CONFLICT': '销售记录冲突', 'FISCAL_BOUNDARY': '财年边界不符', 'FISCAL_NO_PAIR': '无可比营业日', 'DATE': '日期格式无效', 'REV_BLOCKED': '较新来源尚未采信'})

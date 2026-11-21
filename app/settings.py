@@ -12,4 +12,4 @@ ROLE = '连锁零售经营分析员'
 UNIT = '元'
 RULE_VERSION = 'fiscal-week-1.0'
 SIGNATURE = '配对周差额'
-TABS = {'intake': '日销送报', 'contract': '财年字段', 'quality': '日历冲突', 'domain': '可比财周', 'reconcile': '经营清单', 'runs': '财周批次', 'review': '月结复核'}
+TABS = {'intake': '日销送报', 'contract': '财年字段', 'quality': '日历冲突', 'domain': '可比财周', 'reconcile': '经营清单', 'runs': '财周批次', 'review': '月结复核', 'correction': '补正结转'}

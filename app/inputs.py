@@ -50,8 +50,18 @@ class Review(BaseModel):
     note: str = Field(default='',max_length=500)
 
 
+class Evidence(BaseModel):
+    data: CsvText | None = None
+    data_base64: EncodedCsv | None = None
+
+    def raw(self):
+        if self.data is None and self.data_base64 is None:
+            raise DataError('REQUIRED', '需要提交补正来源')
+        return input_bytes(self.data, self.data_base64, None)
+
+
 def read_sample(name):
-    choices = {'shift':'shift.csv','external':'external.csv'}
+    choices = {'shift':'shift.csv','external':'external.csv','correction':'correction.csv'}
     if name not in choices:
         raise DataError('DEMO_UNKNOWN','没有此样例',404)
     return SAMPLE_ROOT.joinpath(choices[name]).read_bytes()
